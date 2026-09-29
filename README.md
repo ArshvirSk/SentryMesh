@@ -48,7 +48,8 @@ Without a file, a deterministic synthetic IoT-flow generator (fixed seed, realis
 | Voting Ensemble (LR+DT+XGB) | soft-vote combination of three base learners | M3 — "ways to combine classifiers"; the source paper's core method |
 
 Every candidate gets the identical evaluation: confusion matrix, per-class precision/recall/F1,
-macro-F1, Cohen's kappa, MCC, ROC-AUC (ovR), the Weka-style error suite (MAE/RMSE/RAE/RRSE),
+macro-F1, macro precision, macro recall (sensitivity), Cohen's kappa, MCC, ROC-AUC (ovR),
+the Weka-style error suite (MAE/RMSE/RAE/RRSE),
 **serialized model size**, and **batch-averaged per-record latency**.
 Training uses stratified 5-fold cross-validation.
 

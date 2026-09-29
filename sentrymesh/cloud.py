@@ -155,6 +155,10 @@ def evaluate_candidate(name, module, pipe, X_train, y_train, X_test, y_test,
     # informative than accuracy under class imbalance.
     kappa = float(cohen_kappa_score(y_test, y_pred))
     mcc = float(matthews_corrcoef(y_test, y_pred))
+    # Macro-averaged precision/recall; in detection literature per-class recall is
+    # called sensitivity, so the UI reports Recall (sensitivity).
+    precision_macro = float(np.mean(prec))
+    recall_macro = float(np.mean(rec))   # = sensitivity, macro-averaged
 
     # True-class indicator matrix (used by ROC-AUC and the error suite below).
     y_test_bin = np.zeros((len(y_test), len(CLASSES)))
@@ -201,6 +205,8 @@ def evaluate_candidate(name, module, pipe, X_train, y_train, X_test, y_test,
         "name": name, "module": module,
         "accuracy": round(float(acc), 4),
         "macro_f1": round(float(macro_f1), 4),
+        "precision_macro": round(precision_macro, 4),
+        "recall_macro": round(recall_macro, 4),   # sensitivity
         "kappa": round(kappa, 4),
         "mcc": round(mcc, 4),
         "errors": errors,

@@ -33,18 +33,25 @@ credential exchanges.
 
 Test set = 11,250 held-out records. Latency = mean over a 500-record batch,
 5 repetitions. Size = serialized joblib (compression 3). Kappa = Cohen's kappa,
-MCC = Matthews correlation coefficient; MAE/RMSE/RAE/RRSE are the Weka-style error
-suite computed from predicted probabilities (RAE/RRSE normalised by the zero-R
-class-prior predictor), following the source paper's error analysis.
+MCC = Matthews correlation coefficient; Precision/Recall are macro-averaged across the
+four classes (per-class recall = sensitivity in detection literature); MAE/RMSE/RAE/RRSE
+are the Weka-style error suite computed from predicted probabilities (RAE/RRSE normalised
+by the zero-R class-prior predictor), following the source paper's error analysis.
 
-| Candidate | Module | Accuracy | Macro-F1 | Kappa | MCC | ROC-AUC | Size | Latency (ms/rec) |
-|---|---|---|---|---|---|---|---|---|
-| Logistic Regression | M2 | 0.9738 | 0.8917 | 0.9394 | 0.9405 | 0.9912 | 1.5 KB | 0.0041 |
-| Decision Tree (CART/Gini) | M2 | 0.9862 | 0.9500 | 0.9688 | 0.9689 | 0.9687 | 15.7 KB | 0.0032 |
-| Random Forest (bagging) | M3 | 0.9893 | 0.9600 | 0.9758 | 0.9759 | 0.9982 | 2,571 KB | 0.1195 |
-| **Gradient Boosting (XGBoost)** | **M3** | **0.9921** | **0.9706** | **0.9821** | **0.9822** | **0.9991** | **424 KB** | **0.0096** |
-| SVM (RBF kernel) | M4 | 0.9746 | 0.9002 | 0.9412 | 0.9423 | 0.9806 | 269 KB | 0.5514 |
-| Voting Ensemble (LR+DT+XGB) | M3 | 0.9901 | 0.9629 | 0.9776 | 0.9778 | 0.9976 | 441 KB | 0.0188 |
+| Candidate | Module | Accuracy | Macro-F1 | Precision | Recall (sens.) | Kappa | MCC | ROC-AUC | Size | Latency (ms/rec) |
+|---|---|---|---|---|---|---|---|---|---|---|
+| Logistic Regression | M2 | 0.9738 | 0.8917 | 0.9488 | 0.8597 | 0.9394 | 0.9405 | 0.9912 | 1.5 KB | 0.0041 |
+| Decision Tree (CART/Gini) | M2 | 0.9862 | 0.9500 | 0.9621 | 0.9393 | 0.9688 | 0.9689 | 0.9687 | 15.7 KB | 0.0032 |
+| Random Forest (bagging) | M3 | 0.9893 | 0.9600 | 0.9795 | 0.9438 | 0.9758 | 0.9759 | 0.9982 | 2,571 KB | 0.1195 |
+| **Gradient Boosting (XGBoost)** | **M3** | **0.9921** | **0.9706** | **0.9867** | **0.9566** | **0.9821** | **0.9822** | **0.9991** | **424 KB** | **0.0096** |
+| SVM (RBF kernel) | M4 | 0.9746 | 0.9002 | 0.9538 | 0.8671 | 0.9412 | 0.9423 | 0.9806 | 269 KB | 0.5514 |
+| Voting Ensemble (LR+DT+XGB) | M3 | 0.9901 | 0.9629 | 0.9856 | 0.9443 | 0.9776 | 0.9778 | 0.9976 | 441 KB | 0.0188 |
+
+The precision/recall split is diagnostic: XGBoost and the Voting Ensemble keep both above
+0.95 (they catch attacks *and* rarely cry wolf), while Logistic Regression and the SVM
+show the classic imbalance pattern — high precision (0.95) but recall/sensitivity of only
+0.86, i.e. they miss roughly one in seven attack records, mostly in the rare
+Authentication class.
 
 Error suite of the deployed winner (XGBoost, full features): MAE 0.0048, RMSE 0.0571,
 RAE 0.0216, RRSE 0.1713 — an order of magnitude better than the zero-R baseline on RAE.

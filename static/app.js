@@ -220,6 +220,8 @@ function renderLab() {
         <span class="tag">${r.module}</span></td>
       <td>${r.accuracy.toFixed(4)}</td>
       <td>${r.macro_f1.toFixed(4)}</td>
+      <td>${r.precision_macro.toFixed(4)}</td>
+      <td>${r.recall_macro.toFixed(4)}</td>
       <td>${r.kappa.toFixed(4)}</td>
       <td>${r.mcc.toFixed(4)}</td>
       <td>${r.roc_auc_ovr == null ? "—" : r.roc_auc_ovr.toFixed(4)}</td>
@@ -264,7 +266,8 @@ function renderLab() {
     </div>
     <div class="spacer"></div>
     <div class="panel"><h3>Candidate comparison — ${m.dataset.n_rows.toLocaleString()} rows, ${m.dataset.n_features} features, ${m.results[0].cv_folds}-fold CV</h3>
-      <table id="cmp-table"><tr><th>Model</th><th>Accuracy</th><th>Macro-F1</th><th>Kappa</th><th>MCC</th><th>ROC-AUC ovR</th><th>CV macro-F1</th><th>Size</th><th>Latency</th><th></th></tr><tbody>${rows}</tbody></table></div>
+      <table id="cmp-table"><tr><th>Model</th><th>Accuracy</th><th>Macro-F1</th><th>Precision</th><th>Recall (sens.)</th><th>Kappa</th><th>MCC</th><th>ROC-AUC ovR</th><th>CV macro-F1</th><th>Size</th><th>Latency</th><th></th></tr><tbody>${rows}</tbody></table>
+      <div class="mono-note" style="margin-top:6px">Precision / Recall are macro-averaged across the four classes; per-class recall is sensitivity in detection literature.</div></div>
     <div class="spacer"></div>
     <div class="grid c2">
       <div class="panel"><h3>Latency vs macro-F1 — band moves with the slider</h3><div id="scatter" class="chart"></div>

@@ -1,0 +1,764 @@
+{
+  "results": [
+    {
+      "name": "Logistic Regression",
+      "module": "Module 2",
+      "accuracy": 0.9738,
+      "macro_f1": 0.8917,
+      "kappa": 0.9394,
+      "mcc": 0.9405,
+      "errors": {
+        "mae": 0.0259,
+        "rmse": 0.1007,
+        "rae": 0.1163,
+        "rrse": 0.302
+      },
+      "roc_auc_ovr": 0.9912,
+      "cv_macro_f1_mean": 0.8948,
+      "cv_macro_f1_std": 0.0061,
+      "cv_folds": 5,
+      "confusion_matrix": [
+        [
+          8100,
+          0,
+          6,
+          22
+        ],
+        [
+          0,
+          1773,
+          0,
+          0
+        ],
+        [
+          16,
+          0,
+          867,
+          18
+        ],
+        [
+          222,
+          0,
+          11,
+          215
+        ]
+      ],
+      "per_class": {
+        "Benign": {
+          "precision": 0.9715,
+          "recall": 0.9966,
+          "f1": 0.9838,
+          "support": 8128
+        },
+        "DoS": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "support": 1773
+        },
+        "Probing": {
+          "precision": 0.9808,
+          "recall": 0.9623,
+          "f1": 0.9714,
+          "support": 901
+        },
+        "Authentication": {
+          "precision": 0.8431,
+          "recall": 0.4799,
+          "f1": 0.6117,
+          "support": 448
+        }
+      },
+      "model_size_bytes": 1510,
+      "model_size_kb": 1.5,
+      "latency_ms_per_record": 0.0041,
+      "fit_seconds": 4.4
+    },
+    {
+      "name": "Decision Tree (CART/Gini)",
+      "module": "Module 2",
+      "accuracy": 0.9862,
+      "macro_f1": 0.95,
+      "kappa": 0.9688,
+      "mcc": 0.9689,
+      "errors": {
+        "mae": 0.0079,
+        "rmse": 0.0843,
+        "rae": 0.0357,
+        "rrse": 0.2528
+      },
+      "roc_auc_ovr": 0.9687,
+      "cv_macro_f1_mean": 0.9511,
+      "cv_macro_f1_std": 0.0033,
+      "cv_folds": 5,
+      "confusion_matrix": [
+        [
+          8086,
+          1,
+          1,
+          40
+        ],
+        [
+          0,
+          1773,
+          0,
+          0
+        ],
+        [
+          3,
+          0,
+          888,
+          10
+        ],
+        [
+          88,
+          0,
+          12,
+          348
+        ]
+      ],
+      "per_class": {
+        "Benign": {
+          "precision": 0.9889,
+          "recall": 0.9948,
+          "f1": 0.9918,
+          "support": 8128
+        },
+        "DoS": {
+          "precision": 0.9994,
+          "recall": 1.0,
+          "f1": 0.9997,
+          "support": 1773
+        },
+        "Probing": {
+          "precision": 0.9856,
+          "recall": 0.9856,
+          "f1": 0.9856,
+          "support": 901
+        },
+        "Authentication": {
+          "precision": 0.8744,
+          "recall": 0.7768,
+          "f1": 0.8227,
+          "support": 448
+        }
+      },
+      "model_size_bytes": 16049,
+      "model_size_kb": 15.7,
+      "latency_ms_per_record": 0.0032,
+      "fit_seconds": 5.12
+    },
+    {
+      "name": "Random Forest (bagging)",
+      "module": "Module 3",
+      "accuracy": 0.9893,
+      "macro_f1": 0.96,
+      "kappa": 0.9758,
+      "mcc": 0.9759,
+      "errors": {
+        "mae": 0.0133,
+        "rmse": 0.0658,
+        "rae": 0.0596,
+        "rrse": 0.1974
+      },
+      "roc_auc_ovr": 0.9982,
+      "cv_macro_f1_mean": 0.9588,
+      "cv_macro_f1_std": 0.0054,
+      "cv_folds": 5,
+      "confusion_matrix": [
+        [
+          8113,
+          0,
+          1,
+          14
+        ],
+        [
+          0,
+          1773,
+          0,
+          0
+        ],
+        [
+          1,
+          0,
+          891,
+          9
+        ],
+        [
+          87,
+          0,
+          8,
+          353
+        ]
+      ],
+      "per_class": {
+        "Benign": {
+          "precision": 0.9893,
+          "recall": 0.9982,
+          "f1": 0.9937,
+          "support": 8128
+        },
+        "DoS": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "support": 1773
+        },
+        "Probing": {
+          "precision": 0.99,
+          "recall": 0.9889,
+          "f1": 0.9895,
+          "support": 901
+        },
+        "Authentication": {
+          "precision": 0.9388,
+          "recall": 0.7879,
+          "f1": 0.8568,
+          "support": 448
+        }
+      },
+      "model_size_bytes": 2632887,
+      "model_size_kb": 2571.2,
+      "latency_ms_per_record": 0.1195,
+      "fit_seconds": 13.09
+    },
+    {
+      "name": "Gradient Boosting (XGBoost)",
+      "module": "Module 3",
+      "accuracy": 0.9921,
+      "macro_f1": 0.9706,
+      "kappa": 0.9821,
+      "mcc": 0.9822,
+      "errors": {
+        "mae": 0.0048,
+        "rmse": 0.0571,
+        "rae": 0.0216,
+        "rrse": 0.1713
+      },
+      "roc_auc_ovr": 0.9991,
+      "cv_macro_f1_mean": 0.9735,
+      "cv_macro_f1_std": 0.0031,
+      "cv_folds": 5,
+      "confusion_matrix": [
+        [
+          8122,
+          0,
+          1,
+          5
+        ],
+        [
+          0,
+          1773,
+          0,
+          0
+        ],
+        [
+          1,
+          0,
+          890,
+          10
+        ],
+        [
+          67,
+          0,
+          5,
+          376
+        ]
+      ],
+      "per_class": {
+        "Benign": {
+          "precision": 0.9917,
+          "recall": 0.9993,
+          "f1": 0.9955,
+          "support": 8128
+        },
+        "DoS": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "support": 1773
+        },
+        "Probing": {
+          "precision": 0.9933,
+          "recall": 0.9878,
+          "f1": 0.9905,
+          "support": 901
+        },
+        "Authentication": {
+          "precision": 0.9616,
+          "recall": 0.8393,
+          "f1": 0.8963,
+          "support": 448
+        }
+      },
+      "model_size_bytes": 433895,
+      "model_size_kb": 423.7,
+      "latency_ms_per_record": 0.0096,
+      "fit_seconds": 12.25
+    },
+    {
+      "name": "SVM (RBF kernel)",
+      "module": "Module 4",
+      "accuracy": 0.9746,
+      "macro_f1": 0.9002,
+      "kappa": 0.9412,
+      "mcc": 0.9423,
+      "errors": {
+        "mae": 0.1582,
+        "rmse": 0.2073,
+        "rae": 0.7106,
+        "rrse": 0.6215
+      },
+      "roc_auc_ovr": 0.9806,
+      "cv_macro_f1_mean": 0.8965,
+      "cv_macro_f1_std": 0.0093,
+      "cv_folds": 5,
+      "confusion_matrix": [
+        [
+          8104,
+          0,
+          1,
+          23
+        ],
+        [
+          0,
+          1773,
+          0,
+          0
+        ],
+        [
+          35,
+          0,
+          851,
+          15
+        ],
+        [
+          197,
+          0,
+          15,
+          236
+        ]
+      ],
+      "per_class": {
+        "Benign": {
+          "precision": 0.9722,
+          "recall": 0.997,
+          "f1": 0.9845,
+          "support": 8128
+        },
+        "DoS": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "support": 1773
+        },
+        "Probing": {
+          "precision": 0.9815,
+          "recall": 0.9445,
+          "f1": 0.9627,
+          "support": 901
+        },
+        "Authentication": {
+          "precision": 0.8613,
+          "recall": 0.5268,
+          "f1": 0.6537,
+          "support": 448
+        }
+      },
+      "model_size_bytes": 275807,
+      "model_size_kb": 269.3,
+      "latency_ms_per_record": 0.5514,
+      "fit_seconds": 19.09
+    },
+    {
+      "name": "Voting Ensemble (LR+DT+XGB)",
+      "module": "Module 3",
+      "accuracy": 0.9901,
+      "macro_f1": 0.9629,
+      "kappa": 0.9776,
+      "mcc": 0.9778,
+      "errors": {
+        "mae": 0.0129,
+        "rmse": 0.0663,
+        "rae": 0.0579,
+        "rrse": 0.1988
+      },
+      "roc_auc_ovr": 0.9976,
+      "cv_macro_f1_mean": 0.9671,
+      "cv_macro_f1_std": 0.0046,
+      "cv_folds": 5,
+      "confusion_matrix": [
+        [
+          8121,
+          0,
+          0,
+          7
+        ],
+        [
+          0,
+          1773,
+          0,
+          0
+        ],
+        [
+          1,
+          0,
+          892,
+          8
+        ],
+        [
+          90,
+          0,
+          5,
+          353
+        ]
+      ],
+      "per_class": {
+        "Benign": {
+          "precision": 0.9889,
+          "recall": 0.9991,
+          "f1": 0.994,
+          "support": 8128
+        },
+        "DoS": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "support": 1773
+        },
+        "Probing": {
+          "precision": 0.9944,
+          "recall": 0.99,
+          "f1": 0.9922,
+          "support": 901
+        },
+        "Authentication": {
+          "precision": 0.9592,
+          "recall": 0.7879,
+          "f1": 0.8652,
+          "support": 448
+        }
+      },
+      "model_size_bytes": 451812,
+      "model_size_kb": 441.2,
+      "latency_ms_per_record": 0.0188,
+      "fit_seconds": 12.23
+    }
+  ],
+  "winner": {
+    "name": "Gradient Boosting (XGBoost)",
+    "module": "Module 3",
+    "accuracy": 0.9921,
+    "macro_f1": 0.9706,
+    "kappa": 0.9821,
+    "mcc": 0.9822,
+    "errors": {
+      "mae": 0.0048,
+      "rmse": 0.0571,
+      "rae": 0.0216,
+      "rrse": 0.1713
+    },
+    "roc_auc_ovr": 0.9991,
+    "cv_macro_f1_mean": 0.9735,
+    "cv_macro_f1_std": 0.0031,
+    "cv_folds": 5,
+    "confusion_matrix": [
+      [
+        8122,
+        0,
+        1,
+        5
+      ],
+      [
+        0,
+        1773,
+        0,
+        0
+      ],
+      [
+        1,
+        0,
+        890,
+        10
+      ],
+      [
+        67,
+        0,
+        5,
+        376
+      ]
+    ],
+    "per_class": {
+      "Benign": {
+        "precision": 0.9917,
+        "recall": 0.9993,
+        "f1": 0.9955,
+        "support": 8128
+      },
+      "DoS": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "support": 1773
+      },
+      "Probing": {
+        "precision": 0.9933,
+        "recall": 0.9878,
+        "f1": 0.9905,
+        "support": 901
+      },
+      "Authentication": {
+        "precision": 0.9616,
+        "recall": 0.8393,
+        "f1": 0.8963,
+        "support": 448
+      }
+    },
+    "model_size_bytes": 433895,
+    "model_size_kb": 423.7,
+    "latency_ms_per_record": 0.0096,
+    "fit_seconds": 12.25
+  },
+  "selection": {
+    "best_macro_f1": 0.9706,
+    "tolerance": 0.02,
+    "tiebreaker": "latency",
+    "qualified": [
+      "Random Forest (bagging)",
+      "Gradient Boosting (XGBoost)",
+      "Voting Ensemble (LR+DT+XGB)"
+    ],
+    "reasoning": "Best macro-F1 of any candidate was 0.9706. With the 2-percentage-point tolerance band (>= 0.9506), 3 of 6 candidates qualified: Random Forest (bagging) (macro-F1 0.960), Gradient Boosting (XGBoost) (macro-F1 0.971), Voting Ensemble (LR+DT+XGB) (macro-F1 0.963). Excluded: Logistic Regression (macro-F1 0.892, 0.004 ms/record); Decision Tree (CART/Gini) (macro-F1 0.950, 0.003 ms/record); SVM (RBF kernel) (macro-F1 0.900, 0.551 ms/record). Among the qualifying models, Gradient Boosting (XGBoost) was selected for fog/edge deployment because its inference latency (0.010 ms/record) is the lowest in the band -- the smallest accuracy sacrifice that buys the cheapest real-time classifier for a resource-constrained IoT gateway."
+  },
+  "pca": {
+    "n_features_full": 12,
+    "n_features_reduced": 1,
+    "variance_target": 0.95,
+    "variance_retained": 0.9943,
+    "cumvar_curve": [
+      {
+        "k": 1,
+        "variance": 0.9943
+      },
+      {
+        "k": 2,
+        "variance": 0.9978
+      },
+      {
+        "k": 3,
+        "variance": 0.9999
+      },
+      {
+        "k": 4,
+        "variance": 1.0
+      },
+      {
+        "k": 5,
+        "variance": 1.0
+      },
+      {
+        "k": 6,
+        "variance": 1.0
+      },
+      {
+        "k": 7,
+        "variance": 1.0
+      },
+      {
+        "k": 8,
+        "variance": 1.0
+      },
+      {
+        "k": 9,
+        "variance": 1.0
+      },
+      {
+        "k": 10,
+        "variance": 1.0
+      },
+      {
+        "k": 11,
+        "variance": 1.0
+      },
+      {
+        "k": 12,
+        "variance": 1.0
+      }
+    ],
+    "full": {
+      "name": "Gradient Boosting (XGBoost)",
+      "module": "Module 3",
+      "accuracy": 0.9921,
+      "macro_f1": 0.9706,
+      "kappa": 0.9821,
+      "mcc": 0.9822,
+      "errors": {
+        "mae": 0.0048,
+        "rmse": 0.0571,
+        "rae": 0.0216,
+        "rrse": 0.1713
+      },
+      "roc_auc_ovr": 0.9991,
+      "cv_macro_f1_mean": null,
+      "cv_macro_f1_std": null,
+      "cv_folds": 5,
+      "confusion_matrix": [
+        [
+          8122,
+          0,
+          1,
+          5
+        ],
+        [
+          0,
+          1773,
+          0,
+          0
+        ],
+        [
+          1,
+          0,
+          890,
+          10
+        ],
+        [
+          67,
+          0,
+          5,
+          376
+        ]
+      ],
+      "per_class": {
+        "Benign": {
+          "precision": 0.9917,
+          "recall": 0.9993,
+          "f1": 0.9955,
+          "support": 8128
+        },
+        "DoS": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "support": 1773
+        },
+        "Probing": {
+          "precision": 0.9933,
+          "recall": 0.9878,
+          "f1": 0.9905,
+          "support": 901
+        },
+        "Authentication": {
+          "precision": 0.9616,
+          "recall": 0.8393,
+          "f1": 0.8963,
+          "support": 448
+        }
+      },
+      "model_size_bytes": 433895,
+      "model_size_kb": 423.7,
+      "latency_ms_per_record": 0.0106,
+      "fit_seconds": 3.66
+    },
+    "reduced": {
+      "name": "Gradient Boosting (XGBoost) (PCA-reduced)",
+      "module": "Module 3",
+      "accuracy": 0.9518,
+      "macro_f1": 0.728,
+      "kappa": 0.8846,
+      "mcc": 0.8903,
+      "errors": {
+        "mae": 0.0414,
+        "rmse": 0.1443,
+        "rae": 0.1861,
+        "rrse": 0.4325
+      },
+      "roc_auc_ovr": 0.952,
+      "cv_macro_f1_mean": null,
+      "cv_macro_f1_std": null,
+      "cv_folds": 5,
+      "confusion_matrix": [
+        [
+          8091,
+          0,
+          37,
+          0
+        ],
+        [
+          9,
+          1764,
+          0,
+          0
+        ],
+        [
+          48,
+          0,
+          853,
+          0
+        ],
+        [
+          436,
+          0,
+          12,
+          0
+        ]
+      ],
+      "per_class": {
+        "Benign": {
+          "precision": 0.9426,
+          "recall": 0.9954,
+          "f1": 0.9683,
+          "support": 8128
+        },
+        "DoS": {
+          "precision": 1.0,
+          "recall": 0.9949,
+          "f1": 0.9975,
+          "support": 1773
+        },
+        "Probing": {
+          "precision": 0.9457,
+          "recall": 0.9467,
+          "f1": 0.9462,
+          "support": 901
+        },
+        "Authentication": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0,
+          "support": 448
+        }
+      },
+      "model_size_bytes": 422686,
+      "model_size_kb": 412.8,
+      "latency_ms_per_record": 0.0092,
+      "fit_seconds": 3.4
+    },
+    "macro_f1_cost": 0.2426,
+    "latency_gain_pct": 13.2,
+    "size_gain_pct": 2.6,
+    "use_reduced": false,
+    "explanation": "PCA retained 99.4% variance with 12 -> 1 features. Macro-F1 moved 0.9706 -> 0.7280 (cost 0.2426); latency changed to 0.009 ms/record (+13.2%); serialized size changed +2.6%. Deploying the full-feature model: the reduction did not pay for itself (accuracy cost too high or no latency benefit), so the edge keeps full features."
+  },
+  "deployed_variant": "full_features",
+  "model_path": "C:\\ASK_Main\\ASK_SFIT_BE_CO\\SEM 7\\Mini Projects\\ML\\artifacts\\deployed_model.joblib",
+  "deployment": {
+    "model": "Gradient Boosting (XGBoost)",
+    "variant": "full_features",
+    "source": "automatic",
+    "accuracy": 0.9917,
+    "macro_f1": 0.9692,
+    "ts": 1790690315.2496593
+  },
+  "dataset": {
+    "n_rows": 45000,
+    "n_features": 12,
+    "n_train": 33750,
+    "n_test": 11250,
+    "class_dist": {
+      "Benign": 32513,
+      "DoS": 7092,
+      "Probing": 3604,
+      "Authentication": 1791
+    }
+  }
+}

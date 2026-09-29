@@ -61,6 +61,13 @@ class EdgeEngine:
         self._res = {"cpu_pct": 0.0, "mem_mb": 0.0, "threads": 0}
         self._res_thread = threading.Thread(target=self._resource_loop, daemon=True)
         self._res_thread.start()
+        # Live correctness tracking (cloud/fog separation): the simulator knows
+        # each replayed row's true label; comparing it to the deployed model's
+        # prediction measures generalization on the *stream* distribution.
+        self.correct = 0
+        self.scored = 0
+        self.correct_by = Counter()
+        self.scored_by = Counter()
         self.load()
 
     def _resource_loop(self):
@@ -106,6 +113,10 @@ class EdgeEngine:
         self.total = 0
         self.started_at = None
         self.device_history.clear()
+        self.correct = 0
+        self.scored = 0
+        self.correct_by.clear()
+        self.scored_by.clear()
         with self._ts_lock:
             self.ts_buckets.clear()
         self._last_bucket = None
@@ -162,8 +173,14 @@ class EdgeEngine:
         }
         return record
 
-    def record_event(self, rec):
+    def record_event(self, rec, true_label=None):
         """Update counters, device history, and feed after a classification."""
+        if true_label is not None:
+            self.scored += 1
+            self.scored_by[true_label] += 1
+            if rec["pred"] == true_label:
+                self.correct += 1
+                self.correct_by[true_label] += 1
         self.counts[rec["pred"]] += 1
         if rec.get("anomalous"):
             self.anomaly_count += 1
@@ -240,12 +257,14 @@ class Simulator:
         self.delay = STREAM_MIN_DELAY
         self.X = None
         self.meta = None
+        self.true_labels = None
         self.cursor = 0
         self.lock = threading.Lock()
 
-    def load_data(self, X, meta):
+    def load_data(self, X, meta, true_labels=None):
         self.X = X.reset_index(drop=True)
         self.meta = meta.reset_index(drop=True) if meta is not None else None
+        self.true_labels = list(true_labels) if true_labels is not None else None
 
     def start(self, delay=None):
         if not self.engine.is_deployed:
@@ -288,17 +307,19 @@ class Simulator:
                     continue
                 i = self.cursor % len(self.X)
                 row = self.X.iloc[i].copy()
-                src_ip = proto = None
+                src_ip = proto = true_label = None
                 if self.meta is not None:
                     if "src_ip" in self.meta.columns:
                         src_ip = str(self.meta.iloc[i]["src_ip"])
                         row["src_ip"] = src_ip
                     if "proto" in self.meta.columns:
                         proto = str(self.meta.iloc[i]["proto"])
+                if self.true_labels is not None:
+                    true_label = self.true_labels[i % len(self.true_labels)]
                 self.cursor += 1
             try:
                 rec = self.engine.classify(row, src_ip=src_ip, proto=proto)
-                self.engine.record_event(rec)
+                self.engine.record_event(rec, true_label=true_label)
             except Exception as exc:
                 print(f"[edge] classify error: {exc}")
             time.sleep(self.delay)

@@ -499,9 +499,9 @@ async function pageOverview() {
     <div class="grid c5">
       <div class="panel stat"><div class="label">Records processed</div><div class="value mono" id="ov-total">0</div><div class="sub" id="ov-rate"></div></div>
       <div class="panel stat"><div class="label">Attacks detected</div><div class="value attack mono" id="ov-attacks">0</div><div class="sub" id="ov-att-pct"></div></div>
+      <div class="panel stat"><div class="label">Live accuracy</div><div class="value mono" id="ov-acc">—</div><div class="sub" id="ov-acc-sub">on unseen stream</div></div>
       <div class="panel stat"><div class="label">Deployed model</div><div class="value mono" id="ov-model" style="font-size:14px; line-height:1.3">—</div><div class="sub" id="ov-variant"></div></div>
-      <div class="panel stat"><div class="label">Avg edge latency</div><div class="value mono" id="ov-lat">—</div><div class="sub">ms / record</div></div>
-      <div class="panel stat"><div class="label">Fog-node resources</div><div class="value mono" id="ov-cpu" style="font-size:20px">—</div><div class="sub" id="ov-mem">CPU % of one core · RSS</div></div>
+      <div class="panel stat"><div class="label">Avg edge latency</div><div class="value mono" id="ov-lat">—</div><div class="sub" id="ov-mem">ms / record · CPU —</div></div>
     </div>
     <div class="spacer"></div>
     <div class="grid c2">
@@ -541,11 +541,15 @@ async function pageOverview() {
       ? `${dep.variant} · macro-F1 ${dep.macro_f1} · ${dep.source === "manual" ? "manual override" : "rule automatic"}`
       : "run Train Models in Model Lab";
     $("#ov-lat").textContent = f.avg_latency_ms != null ? f.avg_latency_ms.toFixed(3) : "—";
+    const accEl = $("#ov-acc");
+    if (accEl) {
+      accEl.textContent = f.live_accuracy != null ? (100 * f.live_accuracy).toFixed(2) + "%" : "—";
+      $("#ov-acc-sub").textContent = f.live_scored ? `${fmt(f.live_scored)} scored on the unseen stream regime` : "on unseen stream";
+    }
     const res = f.resources || {};
-    const cpuEl = $("#ov-cpu");
-    if (cpuEl) {
-      cpuEl.textContent = res.cpu_pct != null ? res.cpu_pct.toFixed(1) + "%" : "—";
-      $("#ov-mem").textContent = res.mem_mb != null ? `CPU % of one core · RSS ${res.mem_mb.toFixed(0)} MB · ${res.threads} threads` : "CPU % of one core · RSS";
+    const memEl = $("#ov-mem");
+    if (memEl && res.cpu_pct != null) {
+      memEl.textContent = `ms / record · CPU ${res.cpu_pct.toFixed(1)}% · RSS ${res.mem_mb.toFixed(0)} MB`;
     }
     $("#ov-sim").textContent = f.sim_running ? "running" : "off";
     $("#ov-sim").className = "badge" + (f.sim_running ? " on" : "");
@@ -696,7 +700,8 @@ async function pageLive() {
     $("#lv-state").textContent = f.sim_running ? "running" : "stopped";
     $("#lv-state").className = "badge" + (f.sim_running ? " on" : "");
     $("#lv-tally").textContent =
-      `total ${fmt(f.total)} · benign ${fmt(f.counts.Benign || 0)} · DoS ${fmt(f.counts.DoS || 0)} · probing ${fmt(f.counts.Probing || 0)} · auth ${fmt(f.counts.Authentication || 0)} · anomalous ${fmt(f.anomalies)}`;
+      `total ${fmt(f.total)} · benign ${fmt(f.counts.Benign || 0)} · DoS ${fmt(f.counts.DoS || 0)} · probing ${fmt(f.counts.Probing || 0)} · auth ${fmt(f.counts.Authentication || 0)} · anomalous ${fmt(f.anomalies)}` +
+      (f.live_accuracy != null ? ` · live accuracy ${(100 * f.live_accuracy).toFixed(2)}% of ${fmt(f.live_scored)}` : "");
     lastWindow = w;
     drawDbscan(w);
 

@@ -126,8 +126,12 @@ strengthen the "cloud does the expensive search" narrative.
      kappa 0.9776, 0.0188 ms/rec, 441 KB — it **qualified in the 2pp band** and lost the
      latency tiebreaker to XGBoost (0.0096 ms), empirically matching the paper's finding
      that combining classifiers buys robustness at extra execution cost.
-3. P2-1 (separate cloud/fog distributions) if time allows before submission; else
-   document as known limitation.
+3. ~~P2-1 (separate cloud/fog distributions).~~ **DONE.** `load_dataset_pair` splits the
+   two tiers: cloud trains on the baseline synthetic regime; the fog stream replays a
+   drifted regime (seed +777, d = 0.25) or a disjoint half of a real dataset. The simulator
+   passes true labels and the engine reports live accuracy on the stream (Overview card +
+   Live Detection tally): 99.3% over the first 141 unseen records vs 99.21% held-out test
+   accuracy — a real generalization measurement, not replay.
 4. P2-2 (kappa as 4th tiebreaker) — also done: the Model Lab tiebreaker selector now
    offers "highest Cohen's kappa".
 5. P2-3 / P3-x as "future work" bullets, honestly labeled.

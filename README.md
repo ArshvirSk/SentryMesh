@@ -14,6 +14,11 @@ SentryMesh simulates a **two-tier ML deployment** for IoT network security:
 Attack categories: **Benign, DoS, Probing (recon), Authentication (credential)** — plus a
 distinct **ANOMALOUS** flag from the unsupervised safety net.
 
+The cloud and fog tiers see **separate distributions** (mirroring the source paper's
+KDDTrain+ / KDDTest+ design): training uses the baseline regime, while the live simulator
+replays a drifted regime (or a disjoint half of a real dataset) whose true labels are
+carried through, so the edge tier reports **live accuracy on unseen data** on Overview.
+
 ## Run it
 
 ```bash

@@ -215,11 +215,16 @@ _SYNTH_PROFILE = {
 }
 
 
-def load_synthetic(n_rows=48000, seed=42):
+def load_synthetic(n_rows=48000, seed=42, drift=0.0):
     """Deterministic synthetic IoT flow generator used when no real dataset is present.
 
     Class weights mimic TON_IoT's natural imbalance (benign majority, attack minority).
     A fixed RNG seed makes runs reproducible so training results are comparable.
+
+    drift: 0.0 = the baseline regime; >0 perturbs the attack-class parameters
+    (scale/shape shifts and benign-tail mixing) to simulate a distribution the
+    model was not trained on -- used to build a separate cloud-train / fog-stream
+    pair (the paper's KDDTrain+ / KDDTest+ separation).
     """
     rng = np.random.RandomState(seed)
     cats = list(_SYNTH_PROFILE.keys())
@@ -244,35 +249,46 @@ def load_synthetic(n_rows=48000, seed=42):
 
     X = pd.DataFrame(cols, index=np.arange(n_rows))
 
+    d = float(drift)
+
     # DoS: huge floods, near-zero duration, tiny packets, single proto burst
     dos = y == "DoS"
-    X.loc[dos, "f_bytes_total"] = rng.gamma(8.0, 9000.0, int(dos.sum()))
-    X.loc[dos, "f_pkts_total"] = rng.gamma(9.0, 120.0, int(dos.sum()))
-    X.loc[dos, "f_duration"] = rng.exponential(0.02, int(dos.sum()))
+    X.loc[dos, "f_bytes_total"] = rng.gamma(8.0 * (1 + 0.4 * d), 9000.0 * (1 + 0.5 * d), int(dos.sum()))
+    X.loc[dos, "f_pkts_total"] = rng.gamma(9.0 * (1 + 0.3 * d), 120.0 * (1 + 0.4 * d), int(dos.sum()))
+    X.loc[dos, "f_duration"] = rng.exponential(0.02 * (1 + 2.0 * d), int(dos.sum()))
     X.loc[dos, "f_bytes_per_pkt"] = X.loc[dos, "f_bytes_total"] / np.maximum(X.loc[dos, "f_pkts_total"], 1)
-    X.loc[dos, "f_pkt_ratio"] = rng.lognormal(1.2, 0.3, int(dos.sum()))
-    X.loc[dos, "f_inter_arrival"] = rng.exponential(0.0002, int(dos.sum()))
-    X.loc[dos, "proto_code"] = rng.choice([1, 0], int(dos.sum()), p=[0.92, 0.08])
+    X.loc[dos, "f_pkt_ratio"] = rng.lognormal(1.2 * (1 + 0.25 * d), 0.3 * (1 + 0.5 * d), int(dos.sum()))
+    X.loc[dos, "f_inter_arrival"] = rng.exponential(0.0002 * (1 + 3.0 * d), int(dos.sum()))
+    X.loc[dos, "proto_code"] = rng.choice([1, 0], int(dos.sum()), p=[0.92 - 0.15 * d, 0.08 + 0.15 * d])
 
     # Probing: many small connections, tiny payloads, low duration
     prb = y == "Probing"
-    X.loc[prb, "f_bytes_total"] = rng.gamma(2.0, 90.0, int(prb.sum()))
-    X.loc[prb, "f_pkts_total"] = rng.gamma(2.5, 6.0, int(prb.sum()))
-    X.loc[prb, "f_duration"] = rng.exponential(0.4, int(prb.sum()))
+    X.loc[prb, "f_bytes_total"] = rng.gamma(2.0 * (1 + 0.5 * d), 90.0 * (1 + 0.6 * d), int(prb.sum()))
+    X.loc[prb, "f_pkts_total"] = rng.gamma(2.5 * (1 + 0.4 * d), 6.0 * (1 + 0.5 * d), int(prb.sum()))
+    X.loc[prb, "f_duration"] = rng.exponential(0.4 * (1 + 1.5 * d), int(prb.sum()))
     X.loc[prb, "f_bytes_per_pkt"] = X.loc[prb, "f_bytes_total"] / np.maximum(X.loc[prb, "f_pkts_total"], 1)
-    X.loc[prb, "f_byte_ratio"] = rng.lognormal(-0.4, 0.3, int(prb.sum()))
-    X.loc[prb, "f_inter_arrival"] = rng.exponential(0.004, int(prb.sum()))
-    X.loc[prb, "proto_code"] = rng.choice([0, 2], int(prb.sum()), p=[0.7, 0.3])
+    X.loc[prb, "f_byte_ratio"] = rng.lognormal(-0.4 * (1 - 0.5 * d), 0.3 * (1 + 0.6 * d), int(prb.sum()))
+    X.loc[prb, "f_inter_arrival"] = rng.exponential(0.004 * (1 + 2.0 * d), int(prb.sum()))
+    X.loc[prb, "proto_code"] = rng.choice([0, 2], int(prb.sum()), p=[0.7 - 0.2 * d, 0.3 + 0.2 * d])
 
     # Authentication: few packets, moderate bytes, distinctive byte/pkt ratios
     aut = y == "Authentication"
-    X.loc[aut, "f_bytes_total"] = rng.gamma(3.5, 500.0, int(aut.sum()))
-    X.loc[aut, "f_pkts_total"] = rng.gamma(3.0, 9.0, int(aut.sum()))
-    X.loc[aut, "f_duration"] = rng.exponential(1.8, int(aut.sum()))
+    X.loc[aut, "f_bytes_total"] = rng.gamma(3.5 * (1 - 0.3 * d), 500.0 * (1 + 0.7 * d), int(aut.sum()))
+    X.loc[aut, "f_pkts_total"] = rng.gamma(3.0 * (1 - 0.25 * d), 9.0 * (1 + 0.6 * d), int(aut.sum()))
+    X.loc[aut, "f_duration"] = rng.exponential(1.8 * (1 - 0.4 * d), int(aut.sum()))
     X.loc[aut, "f_bytes_per_pkt"] = X.loc[aut, "f_bytes_total"] / np.maximum(X.loc[aut, "f_pkts_total"], 1)
-    X.loc[aut, "f_byte_ratio"] = rng.lognormal(0.5, 0.35, int(aut.sum()))
-    X.loc[aut, "f_inter_arrival"] = rng.exponential(0.02, int(aut.sum()))
-    X.loc[aut, "proto_code"] = rng.choice([0, 2], int(aut.sum()), p=[0.5, 0.5])
+    X.loc[aut, "f_byte_ratio"] = rng.lognormal(0.5 * (1 - 0.6 * d), 0.35 * (1 + 0.8 * d), int(aut.sum()))
+    X.loc[aut, "f_inter_arrival"] = rng.exponential(0.02 * (1 - 0.5 * d), int(aut.sum()))
+    X.loc[aut, "proto_code"] = rng.choice([0, 2], int(aut.sum()), p=[0.5 + 0.2 * d, 0.5 - 0.2 * d])
+
+    # Drift also blurs the benign tail toward attack-like volumes, the way real
+    # traffic shifts (bulk backups, firmware updates) look attack-ish.
+    if d > 0:
+        ben = y == "Benign"
+        n_ben = int(ben.sum())
+        X.loc[ben, "f_bytes_total"] *= rng.lognormal(0.0, 0.5 * d, n_ben)
+        X.loc[ben, "f_pkts_total"] *= rng.lognormal(0.0, 0.4 * d, n_ben)
+        X.loc[ben, "f_duration"] *= rng.lognormal(0.0, 0.6 * d, n_ben)
 
     X = X.astype(np.float32)
 
@@ -281,9 +297,10 @@ def load_synthetic(n_rows=48000, seed=42):
     octets = [f"10.0.{rng_ips.randint(1, 6)}.{rng_ips.randint(2, 200)}" for _ in range(n_rows)]
     meta = pd.DataFrame({"src_ip": octets, "proto": X["proto_code"].map({0: "TCP", 1: "UDP", 2: "ICMP"})})
     return X.reset_index(drop=True), pd.Series(y, name="category"), meta, {
-        "source": "Synthetic (deterministic fallback)",
+        "source": "Synthetic (deterministic fallback)" + (f" · drifted regime d={drift}" if drift else ""),
         "raw_rows": n_rows,
         "class_dist": pd.Series(y).value_counts().to_dict(),
+        "drift": float(drift),
     }
 
 
@@ -312,6 +329,49 @@ def _subsample(X, y, sample_rows, seed, meta=None, source="?", raw_rows=0):
         "class_dist": class_dist, "n_features": X.shape[1],
         "columns": list(X.columns), "seed": seed,
     }
+
+
+def load_dataset_pair(sample_rows=60000, stream_rows=60000, seed=42, drift=0.25,
+                      prefer=None, data_dir=None):
+    """Separate cloud-train and fog-stream distributions (the paper's
+    KDDTrain+ / KDDTest+ separation, Section 4.3).
+
+    Synthetic : train on the baseline regime, stream a *drifted* regime (different
+    RNG seed + perturbed attack parameters) so live data is genuinely unseen.
+    Real data : two disjoint row-disjoint subsamples of the source CSVs (half the
+    pool each); drift does not apply.
+
+    Returns (X_tr, y_tr, meta_tr, info_tr, X_st, y_st, meta_st, info_st).
+    """
+    data_dir = Path(data_dir) if data_dir else DATA_DIR
+    real = None
+    for src in ([prefer] if prefer in ("toniot", "ciciot") else ["toniot", "ciciot"]):
+        try:
+            if src == "toniot":
+                candidates = list(data_dir.glob("**/train_test_network.csv")) + \
+                             list(data_dir.glob("**/*train_test_network*.csv"))
+                if candidates:
+                    real = load_toniot(candidates[0], sample_rows + stream_rows, seed)
+                    break
+            elif src == "ciciot":
+                real = load_ciciot(data_dir, sample_rows + stream_rows, seed)
+                break
+        except Exception as exc:
+            print(f"[datasets] pair/{src} failed: {exc}")
+
+    if real is not None:
+        X, y, meta, info = real
+        cut = min(sample_rows, len(X) // 2)
+        X_tr, y_tr, meta_tr = X.iloc[:cut], y.iloc[:cut], meta.iloc[:cut]
+        X_st, y_st, meta_st = X.iloc[cut:cut + stream_rows], y.iloc[cut:cut + stream_rows], meta.iloc[cut:cut + stream_rows]
+        info_tr = dict(info, source=info["source"] + " (cloud-train half)", sampled_rows=len(X_tr))
+        info_st = dict(info, source=info["source"] + " (fog-stream half, disjoint)", sampled_rows=len(X_st))
+        return (X_tr.reset_index(drop=True), y_tr.reset_index(drop=True), meta_tr.reset_index(drop=True), info_tr,
+                X_st.reset_index(drop=True), y_st.reset_index(drop=True), meta_st.reset_index(drop=True), info_st)
+
+    X_tr, y_tr, meta_tr, info_tr = load_synthetic(sample_rows, seed=seed, drift=0.0)
+    X_st, y_st, meta_st, info_st = load_synthetic(stream_rows, seed=seed + 777, drift=drift)
+    return X_tr, y_tr, meta_tr, info_tr, X_st, y_st, meta_st, info_st
 
 
 def load_dataset(sample_rows=60000, seed=42, prefer=None, data_dir=None):

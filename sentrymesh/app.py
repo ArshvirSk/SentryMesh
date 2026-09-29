@@ -13,7 +13,7 @@ from flask import Flask, jsonify, request, send_from_directory
 
 from .cloud import (ARTIFACT_DIR, MACRO_F1_TOLERANCE, make_split, record_deployment,
                     run_training, select_winner, export_deployment)
-from .datasets import CLASSES, load_dataset
+from .datasets import CLASSES, load_dataset, load_dataset_pair
 from .edge import get_engine, get_simulator, set_stream_data, get_stream_data
 
 app = Flask(__name__, static_folder=None)
@@ -25,16 +25,29 @@ _train_state = {"running": False, "started_at": None, "finished_at": None,
                 "error": None, "result": None}
 
 _ds_lock = threading.Lock()
-DATA_CACHE = {"X": None, "y": None, "meta": None, "info": None}
+DATA_CACHE = {"X": None, "y": None, "meta": None, "info": None,
+              "X_st": None, "y_st": None, "meta_st": None, "info_st": None}
+STREAM_DRIFT = 0.25
 
 
 def ensure_data(force=False):
+    """Load the cloud-train distribution AND the fog-stream distribution.
+
+    The cloud trains on DATA_CACHE['X']; the simulator replays the *separate*
+    stream regime ('X_st') -- the paper's train-file/test-file separation -- so
+    live accuracy measures generalization, not replay of seen rows.
+    """
     with _ds_lock:
         if force or DATA_CACHE["X"] is None:
-            X, y, meta, info = load_dataset(sample_rows=60000, seed=42)
-            DATA_CACHE.update({"X": X, "y": y, "meta": meta, "info": info})
+            (X, y, meta, info,
+             X_st, y_st, meta_st, info_st) = load_dataset_pair(
+                sample_rows=60000, stream_rows=60000, seed=42, drift=STREAM_DRIFT)
+            DATA_CACHE.update({"X": X, "y": y, "meta": meta, "info": info,
+                               "X_st": X_st, "y_st": y_st, "meta_st": meta_st, "info_st": info_st})
             set_stream_data(X, y, meta, info)
-            get_simulator().load_data(X, meta)   # simulator replays these rows
+            # Stream replays the disjoint/drifted rows WITH their true labels so
+            # the engine can score itself live.
+            get_simulator().load_data(X_st, meta_st, true_labels=list(y_st))
     return DATA_CACHE["X"], DATA_CACHE["y"], DATA_CACHE["meta"], DATA_CACHE["info"]
 
 
@@ -187,6 +200,9 @@ def api_state():
         "dataset": {"source": info["source"], "rows": int(len(X)),
                     "n_features": int(X.shape[1]),
                     "class_dist": {k: int(v) for k, v in info["class_dist"].items()}},
+        "stream": {"source": DATA_CACHE["info_st"]["source"],
+                   "rows": int(len(DATA_CACHE["X_st"])),
+                   "class_dist": {k: int(v) for k, v in DATA_CACHE["info_st"]["class_dist"].items()}},
         "classes": CLASSES,
     })
 
@@ -251,6 +267,9 @@ def api_feed():
     recent = recent[:120]
     lat = list(engine.latencies)
     avg_lat = round(sum(lat) / len(lat), 3) if lat else None
+    acc = round(engine.correct / engine.scored, 4) if engine.scored else None
+    per_class_acc = {c: {"correct": engine.correct_by.get(c, 0), "n": engine.scored_by.get(c, 0)}
+                     for c in CLASSES}
     return jsonify({
         "feed": recent,
         "total": engine.total,
@@ -258,6 +277,9 @@ def api_feed():
         "anomalies": engine.anomaly_count,
         "avg_latency_ms": avg_lat,
         "resources": engine.resources(),
+        "live_accuracy": acc,
+        "live_scored": engine.scored,
+        "live_accuracy_by_class": per_class_acc,
         "sim_running": get_simulator().is_running,
     })
 

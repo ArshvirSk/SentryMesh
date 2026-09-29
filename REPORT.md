@@ -119,6 +119,16 @@ of accuracy.
   3 GB-RAM fog box; on such hardware the same artifact would sit well under that ceiling
   since our per-record inference is ~0.01 ms and the sampler isolates the inference
   process share.
+- Cloud/fog data separation (added after the source-paper review, mirroring its
+  KDDTrain+ / KDDTest+ design): the cloud trains on the baseline regime while the fog
+  stream replays a **separate, drifted regime** (different seed, attack parameters
+  perturbed at d = 0.25, benign tail broadened) that the model never saw. The simulator
+  carries true labels, so the edge tier scores itself continuously: **live accuracy
+  99.3% on the first 141 unseen streamed records** (per-class tracking included),
+  against a held-out test accuracy of 99.21% — the deployed model generalizes to the
+  drifted stream rather than replaying seen rows. With real datasets in `data/`, the
+  pair loader instead uses two disjoint subsamples of the source CSVs. Live accuracy is
+  shown on Overview and in the Live Detection tally.
 - The traffic simulator replays the dataset as a live gateway stream (50 ms pacing),
   classifies record-by-record, and feeds the Overview / Live Detection / Investigate pages.
 

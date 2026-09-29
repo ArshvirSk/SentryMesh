@@ -5,6 +5,8 @@
       "module": "Module 2",
       "accuracy": 0.9738,
       "macro_f1": 0.8917,
+      "precision_macro": 0.9488,
+      "recall_macro": 0.8597,
       "kappa": 0.9394,
       "mcc": 0.9405,
       "errors": {
@@ -71,14 +73,16 @@
       },
       "model_size_bytes": 1510,
       "model_size_kb": 1.5,
-      "latency_ms_per_record": 0.0041,
-      "fit_seconds": 4.4
+      "latency_ms_per_record": 0.0031,
+      "fit_seconds": 5.68
     },
     {
       "name": "Decision Tree (CART/Gini)",
       "module": "Module 2",
       "accuracy": 0.9862,
       "macro_f1": 0.95,
+      "precision_macro": 0.9621,
+      "recall_macro": 0.9393,
       "kappa": 0.9688,
       "mcc": 0.9689,
       "errors": {
@@ -145,14 +149,16 @@
       },
       "model_size_bytes": 16049,
       "model_size_kb": 15.7,
-      "latency_ms_per_record": 0.0032,
-      "fit_seconds": 5.12
+      "latency_ms_per_record": 0.0027,
+      "fit_seconds": 4.18
     },
     {
       "name": "Random Forest (bagging)",
       "module": "Module 3",
       "accuracy": 0.9893,
       "macro_f1": 0.96,
+      "precision_macro": 0.9795,
+      "recall_macro": 0.9438,
       "kappa": 0.9758,
       "mcc": 0.9759,
       "errors": {
@@ -219,14 +225,16 @@
       },
       "model_size_bytes": 2632887,
       "model_size_kb": 2571.2,
-      "latency_ms_per_record": 0.1195,
-      "fit_seconds": 13.09
+      "latency_ms_per_record": 0.0913,
+      "fit_seconds": 7.07
     },
     {
       "name": "Gradient Boosting (XGBoost)",
       "module": "Module 3",
       "accuracy": 0.9921,
       "macro_f1": 0.9706,
+      "precision_macro": 0.9867,
+      "recall_macro": 0.9566,
       "kappa": 0.9821,
       "mcc": 0.9822,
       "errors": {
@@ -293,14 +301,16 @@
       },
       "model_size_bytes": 433895,
       "model_size_kb": 423.7,
-      "latency_ms_per_record": 0.0096,
-      "fit_seconds": 12.25
+      "latency_ms_per_record": 0.0078,
+      "fit_seconds": 9.07
     },
     {
       "name": "SVM (RBF kernel)",
       "module": "Module 4",
       "accuracy": 0.9746,
       "macro_f1": 0.9002,
+      "precision_macro": 0.9538,
+      "recall_macro": 0.8671,
       "kappa": 0.9412,
       "mcc": 0.9423,
       "errors": {
@@ -367,14 +377,16 @@
       },
       "model_size_bytes": 275807,
       "model_size_kb": 269.3,
-      "latency_ms_per_record": 0.5514,
-      "fit_seconds": 19.09
+      "latency_ms_per_record": 0.4018,
+      "fit_seconds": 18.69
     },
     {
       "name": "Voting Ensemble (LR+DT+XGB)",
       "module": "Module 3",
       "accuracy": 0.9901,
       "macro_f1": 0.9629,
+      "precision_macro": 0.9856,
+      "recall_macro": 0.9443,
       "kappa": 0.9776,
       "mcc": 0.9778,
       "errors": {
@@ -441,8 +453,8 @@
       },
       "model_size_bytes": 451812,
       "model_size_kb": 441.2,
-      "latency_ms_per_record": 0.0188,
-      "fit_seconds": 12.23
+      "latency_ms_per_record": 0.0142,
+      "fit_seconds": 9.94
     }
   ],
   "winner": {
@@ -450,6 +462,8 @@
     "module": "Module 3",
     "accuracy": 0.9921,
     "macro_f1": 0.9706,
+    "precision_macro": 0.9867,
+    "recall_macro": 0.9566,
     "kappa": 0.9821,
     "mcc": 0.9822,
     "errors": {
@@ -516,8 +530,8 @@
     },
     "model_size_bytes": 433895,
     "model_size_kb": 423.7,
-    "latency_ms_per_record": 0.0096,
-    "fit_seconds": 12.25
+    "latency_ms_per_record": 0.0078,
+    "fit_seconds": 9.07
   },
   "selection": {
     "best_macro_f1": 0.9706,
@@ -528,7 +542,7 @@
       "Gradient Boosting (XGBoost)",
       "Voting Ensemble (LR+DT+XGB)"
     ],
-    "reasoning": "Best macro-F1 of any candidate was 0.9706. With the 2-percentage-point tolerance band (>= 0.9506), 3 of 6 candidates qualified: Random Forest (bagging) (macro-F1 0.960), Gradient Boosting (XGBoost) (macro-F1 0.971), Voting Ensemble (LR+DT+XGB) (macro-F1 0.963). Excluded: Logistic Regression (macro-F1 0.892, 0.004 ms/record); Decision Tree (CART/Gini) (macro-F1 0.950, 0.003 ms/record); SVM (RBF kernel) (macro-F1 0.900, 0.551 ms/record). Among the qualifying models, Gradient Boosting (XGBoost) was selected for fog/edge deployment because its inference latency (0.010 ms/record) is the lowest in the band -- the smallest accuracy sacrifice that buys the cheapest real-time classifier for a resource-constrained IoT gateway."
+    "reasoning": "Best macro-F1 of any candidate was 0.9706. With the 2-percentage-point tolerance band (>= 0.9506), 3 of 6 candidates qualified: Random Forest (bagging) (macro-F1 0.960), Gradient Boosting (XGBoost) (macro-F1 0.971), Voting Ensemble (LR+DT+XGB) (macro-F1 0.963). Excluded: Logistic Regression (macro-F1 0.892, 0.003 ms/record); Decision Tree (CART/Gini) (macro-F1 0.950, 0.003 ms/record); SVM (RBF kernel) (macro-F1 0.900, 0.402 ms/record). Among the qualifying models, Gradient Boosting (XGBoost) was selected for fog/edge deployment because its inference latency (0.008 ms/record) is the lowest in the band -- the smallest accuracy sacrifice that buys the cheapest real-time classifier for a resource-constrained IoT gateway."
   },
   "pca": {
     "n_features_full": 12,
@@ -590,6 +604,8 @@
       "module": "Module 3",
       "accuracy": 0.9921,
       "macro_f1": 0.9706,
+      "precision_macro": 0.9867,
+      "recall_macro": 0.9566,
       "kappa": 0.9821,
       "mcc": 0.9822,
       "errors": {
@@ -656,14 +672,16 @@
       },
       "model_size_bytes": 433895,
       "model_size_kb": 423.7,
-      "latency_ms_per_record": 0.0106,
-      "fit_seconds": 3.66
+      "latency_ms_per_record": 0.0069,
+      "fit_seconds": 1.38
     },
     "reduced": {
       "name": "Gradient Boosting (XGBoost) (PCA-reduced)",
       "module": "Module 3",
       "accuracy": 0.9518,
       "macro_f1": 0.728,
+      "precision_macro": 0.7221,
+      "recall_macro": 0.7343,
       "kappa": 0.8846,
       "mcc": 0.8903,
       "errors": {
@@ -730,14 +748,14 @@
       },
       "model_size_bytes": 422686,
       "model_size_kb": 412.8,
-      "latency_ms_per_record": 0.0092,
-      "fit_seconds": 3.4
+      "latency_ms_per_record": 0.0067,
+      "fit_seconds": 1.2
     },
     "macro_f1_cost": 0.2426,
-    "latency_gain_pct": 13.2,
+    "latency_gain_pct": 2.9,
     "size_gain_pct": 2.6,
     "use_reduced": false,
-    "explanation": "PCA retained 99.4% variance with 12 -> 1 features. Macro-F1 moved 0.9706 -> 0.7280 (cost 0.2426); latency changed to 0.009 ms/record (+13.2%); serialized size changed +2.6%. Deploying the full-feature model: the reduction did not pay for itself (accuracy cost too high or no latency benefit), so the edge keeps full features."
+    "explanation": "PCA retained 99.4% variance with 12 -> 1 features. Macro-F1 moved 0.9706 -> 0.7280 (cost 0.2426); latency changed to 0.007 ms/record (+2.9%); serialized size changed +2.6%. Deploying the full-feature model: the reduction did not pay for itself (accuracy cost too high or no latency benefit), so the edge keeps full features."
   },
   "deployed_variant": "full_features",
   "model_path": "C:\\ASK_Main\\ASK_SFIT_BE_CO\\SEM 7\\Mini Projects\\ML\\artifacts\\deployed_model.joblib",
@@ -745,9 +763,9 @@
     "model": "Gradient Boosting (XGBoost)",
     "variant": "full_features",
     "source": "automatic",
-    "accuracy": 0.9917,
-    "macro_f1": 0.9692,
-    "ts": 1790690315.2496593
+    "accuracy": 0.9921,
+    "macro_f1": 0.9706,
+    "ts": 1790693309.9423208
   },
   "dataset": {
     "n_rows": 45000,

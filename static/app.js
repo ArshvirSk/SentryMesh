@@ -51,6 +51,7 @@ initTheme();
 let page = "overview";
 let timers = [];
 let liveFilterClass = null;   // set by Overview distribution click-through
+let liveFilterIp = null;      // set by "watch this device" from Investigate
 
 function clearTimers() { timers.forEach(clearInterval); timers = []; }
 function poll(fn, ms) { fn(); timers.push(setInterval(fn, ms)); }
@@ -116,6 +117,34 @@ const TIEBREAKERS = {
 let lab = { tolerance: 0.02, tiebreaker: "latency", variant: "full_features" };
 let labModels = null;
 let selectFetchTimer = null;
+let labSort = { key: "macro_f1", dir: -1 };   // sortable comparison table
+
+/* Sort specs for the candidate table; `text` cols sort case-insensitively. */
+const LAB_COLS = {
+  "Model": { key: "name", text: true },
+  "Accuracy": { key: "accuracy" },
+  "Macro-F1": { key: "macro_f1" },
+  "Precision": { key: "precision_macro" },
+  "Recall (sens.)": { key: "recall_macro" },
+  "Kappa": { key: "kappa" },
+  "MCC": { key: "mcc" },
+  "ROC-AUC ovR": { key: "roc_auc_ovr", nulls: -Infinity },
+  "CV macro-F1": { key: "cv_macro_f1_mean", nulls: -Infinity },
+  "Size": { key: "model_size_kb" },
+  "Latency": { key: "latency_ms_per_record" },
+};
+
+function sortLabRows(rows) {
+  const spec = LAB_COLS[labSort.key];
+  if (!spec) return rows;
+  const val = (r) => (r[spec.key] == null ? (spec.nulls ?? -Infinity)
+    : spec.text ? String(r[spec.key]).toLowerCase() : r[spec.key]);
+  return [...rows].sort((a, b) => {
+    const va = val(a), vb = val(b);
+    const c = spec.text ? va.localeCompare(vb) : va - vb;
+    return c * labSort.dir;
+  });
+}
 
 async function pageModelLab() {
   main.innerHTML = `
@@ -212,7 +241,8 @@ function renderLab() {
   const dep = m.deployment || { model: m.winner.name, variant: m.deployed_variant, source: "automatic" };
   const sel = ruleSelect();
 
-  const rows = m.results.map((r) => `
+  const dep0 = m.deployment || { model: m.winner.name };
+  const rows = sortLabRows(m.results).map((r) => `
     <tr data-name="${r.name}" class="${r.name === sel.winner.name ? "winner" : ""}">
       <td class="name">${r.name}
         <span class="tag win win-tag" style="display:${r.name === sel.winner.name ? "" : "none"}">RULE PICK</span>
@@ -228,8 +258,8 @@ function renderLab() {
       <td>${r.cv_macro_f1_mean == null ? "—" : r.cv_macro_f1_mean.toFixed(3) + " ± " + r.cv_macro_f1_std.toFixed(3)}</td>
       <td>${fmt(r.model_size_kb, 1)} KB</td>
       <td>${r.latency_ms_per_record.toFixed(3)} ms</td>
-      <td><button class="btn mini deploy-btn ${r.name === dep.model ? "current" : ""}" data-model="${r.name}">
-        ${r.name === dep.model ? "DEPLOYED" : "Deploy"}</button></td>
+      <td><button class="btn mini deploy-btn ${r.name === dep0.model ? "current" : ""}" data-model="${r.name}">
+        ${r.name === dep0.model ? "DEPLOYED" : "Deploy"}</button></td>
     </tr>`).join("");
 
   $("#lab-body").innerHTML = `
@@ -266,7 +296,11 @@ function renderLab() {
     </div>
     <div class="spacer"></div>
     <div class="panel"><h3>Candidate comparison — ${m.dataset.n_rows.toLocaleString()} rows, ${m.dataset.n_features} features, ${m.results[0].cv_folds}-fold CV</h3>
-      <table id="cmp-table"><tr><th>Model</th><th>Accuracy</th><th>Macro-F1</th><th>Precision</th><th>Recall (sens.)</th><th>Kappa</th><th>MCC</th><th>ROC-AUC ovR</th><th>CV macro-F1</th><th>Size</th><th>Latency</th><th></th></tr><tbody>${rows}</tbody></table>
+      <div class="mono-note" style="margin:2px 0 8px">click a column header to sort · deploy/rule highlighting follows the models, not the row order</div>
+      <table id="cmp-table">
+        <tr>${Object.keys(LAB_COLS).map((h) =>
+          `<th class="sortable${labSort.key === h ? (labSort.dir === 1 ? " sorted-asc" : " sorted-desc") : ""}" data-col="${h}">${h}<span class="sort-arrow">${labSort.key === h ? (labSort.dir === 1 ? " ↑" : " ↓") : ""}</span></th>`).join("")}
+        <th></th></tr><tbody>${rows}</tbody></table>
       <div class="mono-note" style="margin-top:6px">Precision / Recall are macro-averaged across the four classes; per-class recall is sensitivity in detection literature.</div></div>
     <div class="spacer"></div>
     <div class="grid c2">
@@ -324,6 +358,17 @@ function renderLab() {
   const resetBtn = $("#btn-reset-auto");
   if (resetBtn) resetBtn.addEventListener("click", () =>
     deployModel(null, lab.variant, "automatic"));
+
+  document.querySelectorAll("#cmp-table th.sortable").forEach((th) => th.addEventListener("click", () => {
+    const col = th.dataset.col;
+    if (labSort.key === col) labSort.dir = -labSort.dir;
+    else { labSort = { key: col, dir: LAB_COLS[col].text ? 1 : -1 };
+      // sensible defaults: metrics descend, cost columns ascend
+      if (col === "Model") labSort.dir = 1;
+      if (col === "Size" || col === "Latency") labSort.dir = 1;
+    }
+    renderLab();
+  }));
 
   updateRuleUI(sel);
   drawCumVar(m.pca);
@@ -509,7 +554,9 @@ async function pageOverview() {
     <div class="spacer"></div>
     <div class="grid c2">
       <div class="panel"><h3>Attack-type distribution <span class="mono-note" id="dist-window"></span></h3><div id="ov-dist" class="muted">no data yet</div>
-        <div class="mono-note" style="margin-top:8px">click a class to open it filtered in Live Detection</div></div>
+        <div class="spacer"></div>
+        <div class="mono-note" style="margin-bottom:6px">per-class live accuracy on the unseen stream · click an attack class to open it filtered in Live Detection</div>
+        <div id="ov-acc-by" class="muted">no scored records yet</div></div>
       <div class="panel"><h3>Traffic over time</h3><div class="bars-over-time" id="ov-time"></div>
         <div class="mono-note" style="margin-top:8px">grey = total · red = attacks</div></div>
     </div>
@@ -557,9 +604,31 @@ async function pageOverview() {
     $("#ov-sim").textContent = f.sim_running ? "running" : "off";
     $("#ov-sim").className = "badge" + (f.sim_running ? " on" : "");
     $("#sidebar-model").textContent = s.deployed ? dep.name : "no model";
+    renderClassAccuracy(f.live_accuracy_by_class);
     renderDist(f.counts, attacks);
     await renderOvCharts();
   }, 1500);
+}
+
+/* Per-class live accuracy bars (Overview): click an attack class → Live Detection
+   pre-filtered to it. Benign is intentionally not clickable — the whole point is
+   jumping to the attack traffic. */
+function renderClassAccuracy(byCls) {
+  const el = $("#ov-acc-by");
+  if (!el) return;
+  if (!byCls || !Object.values(byCls).some((c) => c.n > 0)) {
+    el.textContent = "no scored records yet";
+    return;
+  }
+  el.innerHTML = Object.entries(byCls).map(([cls, c]) => {
+    const acc = c.n ? c.correct / c.n : null;
+    const clickable = cls !== "Benign" && c.n > 0;
+    const misses = c.n - c.correct;
+    return `<div class="bar-row ${clickable ? "clickable" : ""}" ${clickable ? `onclick="goLiveFiltered('${cls}')" title="${misses} missed of ${fmt(c.n)} — show ${cls} in live feed"` : ""}>
+      <div class="bl">${cls}</div>
+      <div class="bar-track"><div class="bar-fill acc${cls !== "Benign" && misses ? " red" : ""}" style="width:${acc == null ? 0 : 100 * acc}%"></div></div>
+      <div class="bv">${acc == null ? "—" : (100 * acc).toFixed(1) + "%"}<span class="acc-n">· ${fmt(c.n)}</span></div></div>`;
+  }).join("");
 }
 
 async function renderOvCharts() {
@@ -646,12 +715,22 @@ function renderDist(counts) { /* replaced by windowed version in renderOvCharts 
 
 window.goLiveFiltered = function (cls) {
   liveFilterClass = cls;
+  liveFilterIp = null;
+  go("live");
+};
+
+window.goLiveWatchIp = function (ip) {
+  liveFilterIp = ip;
+  liveFilterClass = null;
   go("live");
 };
 
 /* ============================== LIVE DETECTION ============================== */
 let liveCls = { Benign: true, DoS: true, Probing: true, Authentication: true, ANOMALOUS: true };
 let liveQ = "";
+let livePaused = false;       // freezes the feed list; DBSCAN viz keeps updating
+let lastFeedHtml = "";
+let liveWatchIp = null;       // device-history merge while watching one device
 
 async function pageLive() {
   if (liveFilterClass) {
@@ -659,7 +738,15 @@ async function pageLive() {
     liveQ = "";
   }
   const pre = liveFilterClass;
+  const preIp = liveFilterIp;
   liveFilterClass = null;
+  liveFilterIp = null;
+  if (preIp) {
+    liveQ = preIp.toLowerCase();
+    liveWatchIp = preIp;
+    // watching a device means ALL of its traffic — clear any leftover class filter
+    Object.keys(liveCls).forEach((k) => (liveCls[k] = true));
+  }
 
   main.innerHTML = `
     <div class="page-title">Live Detection <span class="muted" style="font-size:12px">· fog/edge role</span></div>
@@ -679,28 +766,41 @@ async function pageLive() {
         <div class="filterbar" id="lv-filters">
           ${Object.keys(liveCls).map((c) =>
             `<label class="chk ${liveCls[c] ? "checked" : ""}"><input type="checkbox" data-c="${c}" ${liveCls[c] ? "checked" : ""}>${c}</label>`).join("")}
-          <input class="search" id="lv-q" placeholder="filter by device/IP…" style="flex:1;min-width:160px" value="">
+          <input class="search" id="lv-q" placeholder="filter by device/IP…" style="flex:1;min-width:160px" value="${preIp ? preIp : ""}">
         </div>
-        <div class="mono-note" id="lv-hint" style="margin-bottom:8px">${pre ? `pre-filtered to ${pre} — re-check boxes to widen` : "all classes shown"}</div></div>
+        <div class="mono-note" id="lv-hint" style="margin-bottom:8px">${pre ? `pre-filtered to ${pre} — re-check boxes to widen` : preIp ? `watching ${preIp} — clear the search box to widen` : "all classes shown"}</div></div>
     </div>
     <div class="spacer"></div>
     <div class="panel"><h3>Live feed</h3>
+      <div class="row" style="margin-bottom:10px">
+        <button class="btn small ghost" id="btn-pause-feed"></button>
+        <span class="mono-note" id="feed-note">freezes the list so you can read a record — the stream, counters and DBSCAN viz keep running</span>
+      </div>
       <div class="feed"><div class="feed-row head"><div>time</div><div>source</div><div>predicted</div><div>conf</div><div>latency</div></div>
       <div id="lv-feed"></div></div></div>`;
 
   $("#btn-start").addEventListener("click", () => post("/api/sim/start"));
   $("#btn-stop").addEventListener("click", () => post("/api/sim/stop"));
+  const pauseBtn = $("#btn-pause-feed");
+  pauseBtn.textContent = livePaused ? "▶ Resume" : "⏸ Pause feed";
+  pauseBtn.addEventListener("click", () => {
+    livePaused = !livePaused;
+    pauseBtn.textContent = livePaused ? "▶ Resume" : "⏸ Pause feed";
+  });
   document.querySelectorAll("#lv-filters input[type=checkbox]").forEach((c) =>
     c.addEventListener("change", () => {
       liveCls[c.dataset.c] = c.checked;
       c.parentElement.classList.toggle("checked", c.checked);
     }));
-  $("#lv-q").addEventListener("input", (e) => (liveQ = e.target.value.toLowerCase()));
+  $("#lv-q").addEventListener("input", (e) => {
+    liveQ = e.target.value.toLowerCase();
+    // editing the search away from the watched IP disables the history merge
+    if (liveWatchIp && liveQ !== liveWatchIp.toLowerCase()) liveWatchIp = null;
+  });
 
   poll(async () => {
     const [f, w] = await Promise.all([api("/api/feed"), api("/api/window")]);
-    if (!$("#lv-feed")) return;
-    $("#lv-state").textContent = f.sim_running ? "running" : "stopped";
+    if (!$("#lv-feed")) return;    $("#lv-state").textContent = f.sim_running ? "running" : "stopped";
     $("#lv-state").className = "badge" + (f.sim_running ? " on" : "");
     $("#lv-tally").textContent =
       `total ${fmt(f.total)} · benign ${fmt(f.counts.Benign || 0)} · DoS ${fmt(f.counts.DoS || 0)} · probing ${fmt(f.counts.Probing || 0)} · auth ${fmt(f.counts.Authentication || 0)} · anomalous ${fmt(f.anomalies)}` +
@@ -708,11 +808,20 @@ async function pageLive() {
     lastWindow = w;
     drawDbscan(w);
 
-  const shown = f.feed.filter((r) =>
+  // While watching one device, render its stored history (up to 200 events)
+  // instead of the global feed — a single device is far too sparse to stay
+  // inside the 120-row recent window. The history grows as the simulator
+  // classifies new records, so the watched feed still updates live.
+  let feedRows = f.feed;
+  if (liveWatchIp) {
+    const d = await api("/api/device/" + encodeURIComponent(liveWatchIp));
+    if (d && d.found) feedRows = [...d.events].sort((a, b) => b.ts - a.ts).slice(0, 120);
+  }
+  const shown = feedRows.filter((r) =>
     (liveCls[r.pred] || (r.anomalous && liveCls.ANOMALOUS)) &&
     (!liveQ || r.src_ip.toLowerCase().includes(liveQ)));
   const T = theme();
-  $("#lv-feed").innerHTML = shown.map((r) => {
+  const html = shown.map((r) => {
     const attack = r.pred !== "Benign";
     const anomRow = r.anomalous && liveCls.ANOMALOUS && !liveCls[r.pred];
     return `<div class="feed-row${attack && !anomRow ? " attack" : ""}${r.anomalous ? " anomaly" : ""}">
@@ -720,6 +829,10 @@ async function pageLive() {
       <div class="cls">${anomRow ? "ANOMALOUS" : r.pred}${r.anomalous && !anomRow ? ` <span class="tag" style="border-color:${T.red};color:${T.red}">DBSCAN</span>` : ""}</div>
       <div>${(r.confidence * 100).toFixed(1)}%</div><div>${r.latency_ms.toFixed(2)} ms</div></div>`;
   }).join("") || `<div class="feed-row warn-note"><div colspan="5">no records match the current filter</div><div></div><div></div><div></div><div></div></div>`;
+  if (!livePaused || html !== lastFeedHtml) {
+    lastFeedHtml = html;
+    $("#lv-feed").innerHTML = html;
+  }
   }, 1200);
 }
 
@@ -783,7 +896,8 @@ async function pageInvestigate() {
       const att = (x.counts.DoS || 0) + (x.counts.Probing || 0) + (x.counts.Authentication || 0) + (x.counts.ANOMALOUS || 0);
       return `<div class="feed-row" style="cursor:pointer" onclick="showDevice('${x.src_ip}')">
         <div>${x.src_ip}</div><div>${fmt(x.total)} records</div>
-        <div style="color:${att ? "var(--red)" : "inherit"}">${att ? att + " flagged" : "clean"}</div><div></div><div></div></div>`;
+        <div style="color:${att ? "var(--red)" : "inherit"}">${att ? att + " flagged" : "clean"}</div>
+        <div><button class="btn mini" onclick="event.stopPropagation();goLiveWatchIp('${x.src_ip}')" title="watch this device in the live feed">watch ▸</button></div><div></div></div>`;
     }).join("") || '<div class="muted" style="padding:8px">no devices yet — start the simulator</div>';
   }, 1500);
 
@@ -809,6 +923,7 @@ async function showDevice(ip) {
     <div class="kv" style="margin-bottom:12px">
       <div class="k">Source IP</div><div class="v">${r.src_ip}</div>
       <div class="k">Total records</div><div class="v">${fmt(r.total)}</div>
+      <div class="k">Actions</div><div class="v"><button class="btn mini" onclick="goLiveWatchIp('${r.src_ip}')">watch in live feed ▸</button></div>
     </div>
     <div class="mono-note" style="margin-bottom:6px">classification timeline (grey benign · red attack)</div>
     <div class="strip">${strip || '<span class="muted" style="font-size:10px;padding:8px;display:inline-block">no events</span>'}</div>

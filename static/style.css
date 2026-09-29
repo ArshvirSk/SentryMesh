@@ -189,6 +189,10 @@ body {
 
 /* ---------- tables ---------- */
 table { width: 100%; border-collapse: collapse; font-size: 12px; }
+th.sortable { cursor: pointer; user-select: none; white-space: nowrap; }
+th.sortable:hover { color: var(--text); }
+th .sort-arrow { color: var(--muted); font-size: 9px; margin-left: 2px; }
+th.sorted-asc, th.sorted-desc { color: var(--text); }
 th {
   text-align: left;
   color: var(--muted);
@@ -254,7 +258,10 @@ tr.winner td { background: var(--panel-2); font-weight: 700; }
 .bar-row .bar-track { flex: 1; height: 14px; background: var(--panel-2); border: 1px solid var(--border); }
 .bar-row .bar-fill { height: 100%; background: var(--border-strong); }
 .bar-row .bar-fill.red { background: var(--red); }
+.bar-row .bar-fill.acc { background: var(--text); }
+.bar-row .bar-fill.acc.red { background: var(--red); }
 .bar-row .bv { width: 90px; text-align: right; font-family: var(--mono); }
+.bar-row .bv .acc-n { color: var(--faint); font-size: 10px; margin-left: 4px; }
 
 .bars-over-time { display: flex; align-items: flex-end; gap: 2px; height: 120px; }
 .bars-over-time .tb { flex: 1; background: var(--border-strong); min-height: 1px; position: relative; }

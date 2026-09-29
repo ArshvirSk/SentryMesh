@@ -149,13 +149,13 @@ function sortLabRows(rows) {
 async function pageModelLab() {
   main.innerHTML = `
     <div class="page-title">Model Lab <span class="muted" style="font-size:12px">· cloud role</span></div>
-    <div class="page-sub">Trains all five syllabus candidates on the same split, evaluates them uniformly, then selects the deployable winner by the tolerance-band rule.</div>
+    <div class="page-sub">Trains all six syllabus candidates on the same split, evaluates them uniformly, then selects the deployable winner by the tolerance-band rule.</div>
     <div class="row">
       <button class="btn" id="btn-train">Train Models</button>
       <span class="mono-note" id="train-status"></span>
     </div>
     <div class="spacer"></div>
-    <div id="lab-body" class="muted">No training run yet. Click <b>Train Models</b> to launch the cloud-role sweep (5 candidates × 5-fold CV). This takes a couple of minutes; the page updates when it finishes.</div>`;
+    <div id="lab-body" class="muted">No training run yet. Click <b>Train Models</b> to launch the cloud-role sweep (6 candidates × 5-fold CV). This takes a couple of minutes; the page updates when it finishes.</div>`;
 
   $("#btn-train").addEventListener("click", async () => {
     $("#btn-train").disabled = true;
@@ -952,12 +952,14 @@ const HOW = [
    "At the edge tier, a density-based DBSCAN pass runs over a rolling window of recent traffic. Records that fall in no dense cluster are flagged 'ANOMALOUS — unclassified': a zero-day backstop for attacks the supervised model never saw in training, using the module's density-clustering concepts. The Live Detection page projects this window to 2D so the clusters and outliers are directly visible."],
   ["PCA for the edge deployment", "Module 6 — Dimensionality Reduction",
    "Before deploying, PCA is fitted on the training features (retaining ≥95% variance) and the winner is re-evaluated on the reduced feature set. The deployed model uses full or reduced features depending on which wins the measured accuracy-vs-latency tradeoff — the module's dimensionality-reduction idea made data-driven, with the cumulative explained-variance curve shown in Model Lab."],
+  ["Synthetic dataset with a real-data path", "Design decision — why not a downloaded capture",
+   "A seeded synthetic generator (seed 42, 72/16/8/4% class skew) is the experimental instrument, not a fallback: it makes every reported number bit-for-bit reproducible, guarantees train/test separation (no capture duplicates leaking across the split), carries provably exact labels, and lets the fog stream replay a known 25% drift — so live generalization on Overview is measured against a known shift, not hoped for. The tradeoff is stated plainly: results speak for relative model behaviour under controlled conditions. The full TON_IoT and CICIoT2023 loaders ship in datasets.py — drop a CSV into data/ and the identical pipeline trains, selects, and live-scores real traffic."],
 ];
 
 function pageHow() {
   main.innerHTML = `
     <div class="page-title">How It Works</div>
-    <div class="page-sub">Every implementation detail in SentryMesh maps to a CSC701 (Rev-2019 'C' Scheme) syllabus module.</div>
+    <div class="page-sub">Every implementation detail in SentryMesh maps to a CSC701 (Rev-2019 'C' Scheme) syllabus module — plus the dataset decision, documented like the rest.</div>
     <div class="grid c2">${HOW.map(([t, m, d], i) => `
       <div class="how-card"><div class="how-num">${String(i + 1).padStart(2, "0")}</div>
         <div><span class="how-mod">${m}</span><h4>${t}</h4><p>${d}</p></div></div>`).join("")}</div>`;

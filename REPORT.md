@@ -29,6 +29,46 @@ Attack profiles follow real traffic patterns: DoS = floods with near-zero durati
 Probing = many tiny short-lived connections, Authentication = repeated moderate
 credential exchanges.
 
+### Why synthetic rather than a downloaded capture
+
+The dataset choice is a deliberate experimental decision, not a fallback. The project's
+contribution is a **controlled, reproducible comparison** and a **measured cloud/fog drift
+experiment** — for that job a seeded generator is scientifically stronger than a real
+recapture:
+
+1. **Exact reproducibility.** Seed 42 regenerates every figure in this report
+   bit-for-bit; anyone pressing Train Models re-verifies the numbers. A real capture
+   varies by mirror, version, and preprocessing choices, so its results are unauditable
+   in a mini-project timeframe.
+2. **The drift experiment needs generative control.** The cloud/fog design (§5) rests on
+   testing against a *different* distribution — the paper's KDDTrain+/KDDTest+ idea. Our
+   stream regime perturbs attack parameters at a known magnitude (d = 0.25). A known,
+   quantified shift cannot be manufactured from a static capture; it would have to be
+   faked with heuristic reweighting anyway.
+3. **Train/test contamination is impossible by construction.** Duplicate and near-duplicate
+   rows leaking across splits are a documented flaw of the KDD/CIC capture lineage and
+   inflate accuracy dishonestly. Two independent generation regimes make that failure
+   mode structurally unavailable — a stronger validity guarantee than any real split.
+4. **Provably correct labels and a designed imbalance.** Every row's label is exact (no
+   annotation noise confounding the six-model comparison), and the 72/16/8/4% skew is a
+   chosen stress test for the metric machinery (macro-F1, per-class sensitivity) — on a
+   real capture the skew is whatever it is, and indefensible.
+5. **Availability and scope.** The CICIoT2023 bundle was unreachable at run time (the
+   download-failure sentinel exists because of that), and NSL-KDD — the paper's own
+   dataset — is 1999 DARPA-lineage traffic, not modern IoT. CSC701 assesses the ML
+   pipeline, not dataset engineering; the synthetic regime loads in seconds and demos
+   offline.
+6. **The hedge that makes it airtight: real data ships anyway.** `datasets.py` contains
+   full TON_IoT and CICIoT2023 loaders — drop a CSV into `data/` and the entire pipeline
+   (training, selection, DBSCAN, disjoint-half live scoring) runs on real traffic
+   unchanged. Synthetic is the default for controlled science, not a capability ceiling.
+
+*Limit, stated plainly:* synthetic flows cannot carry real protocol noise or adversarial
+feature distributions, so the numbers here are evidence about **relative model behaviour
+under controlled conditions** — which is exactly the claim this report makes. Absolute
+production claims would require the real-data path, which is supported and re-evaluated
+on every retraining run.
+
 ## 2. Comparison table (uniform evaluation, 5-fold stratified CV)
 
 Test set = 11,250 held-out records. Latency = mean over a 500-record batch,

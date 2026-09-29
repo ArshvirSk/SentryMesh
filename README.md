@@ -155,8 +155,9 @@ aggregate counts.
 | Fog-node resources (Overview) | Live CPU % of one core, RSS memory, and thread count of the edge process, sampled every 2 s — the same instrumentation the source paper reports ("<10% CPU" on its fog node) |
 
 ### How It Works
-Static reference: six numbered cards, one per CSC701 (Rev-2019 'C' Scheme) module, mapping
-each module's concepts to the part of SentryMesh that implements them.
+Static reference: seven cards — one per CSC701 (Rev-2019 'C' Scheme) module, plus one
+documenting the synthetic-dataset decision (and its real-data path) with the same rigor —
+mapping each concept to the part of SentryMesh that implements it.
 
 ### Global controls
 Sidebar navigation; the tier note shows the currently deployed model; the ◐ toggle switches
